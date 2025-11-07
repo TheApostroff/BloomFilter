@@ -1,0 +1,4 @@
+fastapi
+uvicorn[standard]
+language_tool_python
+sqlalchemy
