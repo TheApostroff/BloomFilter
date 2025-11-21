@@ -3,12 +3,23 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
+    --s: 212px; /* control the size*/
+    --c6: #809076;
+    --c2: #dbd4cb;
+    
+    --_g:radial-gradient(#0000 60%,var(--c6) 61% 63%,#0000 64% 77%,var(--c6) 78% 80%,#0000 81%);
+    --_c:,#0000 75%,var(--c2) 0;
+    background:
+      conic-gradient(at 12% 20% var(--_c)) calc(var(--s)* .44) calc(.9*var(--s)),
+      conic-gradient(at 12% 20% var(--_c)) calc(var(--s)*-.06) calc(.4*var(--s)),
+      conic-gradient(at 20% 12% var(--_c)) calc(.9*var(--s)) calc(var(--s)* .44),
+      conic-gradient(at 20% 12% var(--_c)) calc(.4*var(--s)) calc(var(--s)*-.06),
+      var(--_g),var(--_g) calc(var(--s)/2) calc(var(--s)/2) var(--c2);
+    background-size: var(--s) var(--s);
 }
 
 .login-card {
-  background: white;
+  background: var(--c1);
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   padding: 3rem;
@@ -35,7 +46,7 @@
 
 .login-header h1 {
   font-size: 2rem;
-  color: #667eea;
+  color: var(--c4);
   margin-bottom: 0.5rem;
 }
 
@@ -58,7 +69,7 @@
 
 .form-group label {
   font-weight: 600;
-  color: #333;
+  color: var(--c4);
 }
 
 .form-group input {
@@ -72,7 +83,7 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--c6);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -83,15 +94,15 @@
 
 .error-message {
   background: #fee;
-  color: #c33;
+  color: var(--c4);
   padding: 0.75rem;
   border-radius: 6px;
   font-size: 0.9rem;
-  border-left: 4px solid #c33;
+  border-left: 4px solid var(--c6);
 }
 
 .login-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--c3) 0%, var(--c6) 100%);
   color: white;
   padding: 0.75rem;
   border: none;
@@ -104,7 +115,7 @@
 
 .login-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 20px var(--c4)(102, 126, 234, 0.3);
 }
 
 .login-button:disabled {
@@ -114,7 +125,7 @@
 
 .demo-credentials {
   background: #f0f4ff;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--c3);
   padding: 1rem;
   border-radius: 6px;
   margin-top: 1rem;
@@ -127,5 +138,5 @@
 }
 
 .demo-credentials p strong {
-  color: #667eea;
+  color: var(--c3);
 }

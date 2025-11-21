@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import './LoginPage.css'
 
+
+
 function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState('login')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -43,8 +46,7 @@ function LoginPage({ onLogin }) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>Bloom Filter</h1>
-          <p>Quote Search Engine</p>
+          <h1>Smart Writer</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
@@ -84,12 +86,6 @@ function LoginPage({ onLogin }) {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-
-        <div className="demo-credentials">
-          <p>Demo credentials:</p>
-          <p><strong>Username:</strong> demo</p>
-          <p><strong>Password:</strong> demo123</p>
-        </div>
       </div>
     </div>
   )

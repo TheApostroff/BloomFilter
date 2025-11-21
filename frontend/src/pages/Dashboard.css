@@ -4,7 +4,7 @@
 }
 
 .dashboard-header {
-  background: white;
+  background: var(--c2);
   padding: 2rem;
   border-radius: 12px;
   margin-bottom: 2rem;
@@ -13,17 +13,18 @@
 
 .dashboard-header h2 {
   font-size: 2rem;
-  color: #667eea;
+  color: var(--c4);
   margin-bottom: 0.5rem;
+  font-family: 'Lucida Console', 'Courier New', monospace;
 }
 
 .dashboard-header p {
-  color: #666;
+  color: var(--c5);
   font-size: 1.05rem;
-}
+} 
 
 .stats-container {
-  background: white;
+  background: #d0baa1eb;
   padding: 2rem;
   border-radius: 12px;
   margin-bottom: 2rem;
@@ -31,7 +32,7 @@
 }
 
 .stats-container h3 {
-  color: #333;
+  color: var(--c5)  ;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
 }
@@ -43,12 +44,12 @@
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--c2);
+  color: var(--c4);
   padding: 1.5rem;
-  border-radius: 10px;
+  border-radius: 10px;  
   text-align: center;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px var(--c4);
   transition: transform 0.3s ease;
 }
 
@@ -60,6 +61,7 @@
   font-size: 0.9rem;
   opacity: 0.9;
   margin-bottom: 0.5rem;
+  color: var(--c5);
 }
 
 .stat-value {
@@ -68,7 +70,7 @@
 }
 
 .books-section {
-  background: white;
+  background: #b9a185e3;
   padding: 2rem;
   border-radius: 12px;
   margin-bottom: 2rem;
@@ -76,7 +78,7 @@
 }
 
 .books-section h3 {
-  color: #333;
+  color: var(--c5);
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
 }
@@ -84,7 +86,7 @@
 .empty-state {
   text-align: center;
   padding: 2rem;
-  color: #999;
+  color: var(--c1);
 }
 
 .books-list {
@@ -119,14 +121,17 @@
 }
 
 .info-section {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
+  /* background: var(--c2); */
+  /* padding: 2rem;
+  border-radius: 12px; */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
 }
 
 .info-section h3 {
-  color: #333;
+  background: var(--c2);
+  padding: 2rem;
+  border-radius: 12px;
+  color: var(--c4)  ;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
 }
@@ -138,20 +143,20 @@
 }
 
 .info-card {
-  background: linear-gradient(135deg, #f5f7fa 0%, #eff1f5 100%);
+  background: var(--c2);
   padding: 1.5rem;
   border-radius: 10px;
   text-align: center;
 }
 
 .info-card h4 {
-  color: #667eea;
+  color: var(--c5);
   margin-bottom: 0.5rem;
   font-size: 1.1rem;
 }
 
 .info-card p {
-  color: #666;
+  color: var(--c5);
   font-size: 0.95rem;
   line-height: 1.5;
 }
