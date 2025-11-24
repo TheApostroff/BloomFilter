@@ -1,0 +1,172 @@
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  background: var(--c2);
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+.dashboard-header h2 {
+  font-size: 2rem;
+  color: var(--c4);
+  margin-bottom: 0.5rem;
+  font-family: 'Lucida Console', 'Courier New', monospace;
+}
+
+.dashboard-header p {
+  color: var(--c5);
+  font-size: 1.05rem;
+} 
+
+.stats-container {
+  background: #d0baa1eb;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+.stats-container h3 {
+  color: var(--c5)  ;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background: var(--c2);
+  color: var(--c4);
+  padding: 1.5rem;
+  border-radius: 10px;  
+  text-align: center;
+  box-shadow: 0 4px 12px var(--c4);
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+  color: var(--c5);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.books-section {
+  background: #b9a185e3;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+.books-section h3 {
+  color: var(--c5);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--c1);
+}
+
+.books-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.book-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #eff1f5 100%);
+  padding: 1.5rem;
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.book-card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+}
+
+.book-info h4 {
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.book-meta {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
+}
+
+.info-section {
+  /* background: var(--c2); */
+  /* padding: 2rem;
+  border-radius: 12px; */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+.info-section h3 {
+  background: var(--c2);
+  padding: 2rem;
+  border-radius: 12px;
+  color: var(--c4)  ;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.info-card {
+  background: var(--c2);
+  padding: 1.5rem;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.info-card h4 {
+  color: var(--c5);
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.info-card p {
+  color: var(--c5);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-header h2 {
+    font-size: 1.5rem;
+  }
+}

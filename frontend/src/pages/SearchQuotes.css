@@ -1,0 +1,265 @@
+.search-page {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.search-container {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+.search-container h2 {
+  font-size: 2rem;
+  color: #667eea;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 1.05rem;
+  margin-bottom: 2rem;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.quote-textarea {
+  padding: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+  min-height: 120px;
+}
+
+.quote-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.quote-textarea:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background: #fee;
+  color: #c33;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border-left: 4px solid #c33;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-button,
+.add-button {
+  flex: 1;
+  min-width: 180px;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.add-button {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.search-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.add-button:hover:not(:disabled) {
+  background: #f0f4ff;
+}
+
+.search-button:disabled,
+.add-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.result-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 2rem 0;
+  border-left: 4px solid;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-container.found {
+  border-left-color: #3c3;
+}
+
+.result-container.not-found {
+  border-left-color: #c33;
+}
+
+.result-header {
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.result-container.found .result-header {
+  background: #efe;
+  color: #3c3;
+}
+
+.result-container.not-found .result-header {
+  background: #fee;
+  color: #c33;
+}
+
+.result-content {
+  padding: 1.5rem;
+  color: #333;
+}
+
+.result-content p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.result-content strong {
+  color: #667eea;
+}
+
+.sources {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.sources strong {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.sources ul {
+  list-style-position: inside;
+  color: #666;
+}
+
+.sources li {
+  margin: 0.25rem 0;
+  padding-left: 0.5rem;
+}
+
+.info-box {
+  background: linear-gradient(135deg, #f5f7fa 0%, #eff1f5 100%);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+  margin-top: 2rem;
+}
+
+.info-box h3 {
+  color: #667eea;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.explanation {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.explanation-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+}
+
+.explanation-item h4 {
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.explanation-item p {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0.25rem 0;
+}
+
+.explanation-item small {
+  color: #999;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .search-container {
+    padding: 1.5rem;
+  }
+
+  .search-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .search-button,
+  .add-button {
+    width: 100%;
+  }
+
+  .explanation {
+    grid-template-columns: 1fr;
+  }
+}
