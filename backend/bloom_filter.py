@@ -1,5 +1,6 @@
 import mmh3
 import json
+import re
 from typing import Set, List
 
 
@@ -33,6 +34,21 @@ class BloomFilter:
             index = self._hash(item, seed=i)
             indices.append(index)
         return indices
+
+    def _normalize_text(self, text: str) -> str:
+        """
+        Normalize text by lowercasing, removing punctuation, and collapsing whitespace.
+        This ensures that stored quotes and search queries are compared in a consistent manner.
+        """
+        if not text:
+            return ''
+        # Lowercase
+        t = text.lower()
+        # Replace non-word characters with spaces; keep word characters and whitespace
+        t = re.sub(r"[^\w\s]", ' ', t)
+        # Collapse multiple whitespace to single space
+        t = re.sub(r"\s+", ' ', t).strip()
+        return t
     
     def add(self, quote: str, book_title: str):
         """
@@ -42,7 +58,7 @@ class BloomFilter:
             quote: Textul citației
             book_title: Titlul cărții din care provine citația
         """
-        quote_lower = quote.lower().strip()
+        quote_lower = self._normalize_text(quote)
         
         # Setează biții în array
         for index in self._get_hash_indices(quote_lower):
@@ -65,7 +81,7 @@ class BloomFilter:
         Returns:
             True dacă citația ar putea fi prezentă, False dacă sigur nu este
         """
-        quote_lower = quote.lower().strip()
+        quote_lower = self._normalize_text(quote)
         
         for index in self._get_hash_indices(quote_lower):
             if not self.bit_array[index]:
@@ -82,10 +98,10 @@ class BloomFilter:
         Returns:
             Lista cărților care conțin citația
         """
-        quote_lower = quote.lower().strip()
+        quote_lower = self._normalize_text(quote)
         return self.quotes.get(quote_lower, [])
     
-    def add_quotes_from_text(self, text: str, book_title: str, chunk_size: int = 100):
+    def add_quotes_from_text(self, text: str, book_title: str, chunk_size: int = 100, min_chunk: int | None = None, max_chunk: int | None = None):
         """
         Extrage și adaugă citate din text (segmente de cuvinte).
         
@@ -94,13 +110,45 @@ class BloomFilter:
             book_title: Titlul cărții
             chunk_size: Numărul de cuvinte pentru fiecare segment
         """
-        # Curăță textul
-        words = text.lower().split()
-        
-        # Adaugă segmente de cuvinte ca citate
-        for i in range(len(words) - chunk_size + 1):
-            chunk = ' '.join(words[i:i + chunk_size])
-            self.add(chunk, book_title)
+        # Normalize and split text into words
+        norm_text = self._normalize_text(text)
+        words = norm_text.split()
+
+        # Default cap for maximum n-gram length to avoid explosion
+        DEFAULT_MAX_NGRAM = 25
+        if min_chunk is None:
+            # Preserve previous behavior of exact chunk size when min_chunk isn't provided
+            min_chunk = chunk_size
+        if max_chunk is None:
+            # Cap large chunk_size by DEFAULT_MAX_NGRAM for performance
+            max_chunk = min(chunk_size, DEFAULT_MAX_NGRAM)
+
+        # Ensure bounds are sensible
+        if min_chunk < 1:
+            min_chunk = 1
+        if min_chunk > max_chunk:
+            # Reduce min_chunk to max_chunk if the requested min is larger than available cap
+            min_chunk = max_chunk
+
+        nwords = len(words)
+        if nwords == 0:
+            return
+
+        # If the text is extremely short, still add the whole text as a quote
+        if nwords <= min_chunk:
+            self.add(' '.join(words), book_title)
+            return
+
+        # Add n-grams of sizes between min_chunk and max_chunk
+        # Cap max_chunk to nwords to avoid long loops
+        max_chunk = min(max_chunk, nwords)
+
+        for size in range(min_chunk, max_chunk + 1):
+            for i in range(0, nwords - size + 1):
+                chunk = ' '.join(words[i:i + size])
+                self.add(chunk, book_title)
+
+        # Note: This will add small n-grams that make searching short quotes possible
     
     def get_stats(self) -> dict:
         """Returnează statistici despre Bloom Filter."""
@@ -124,7 +172,7 @@ class BloomFilter:
     
     @classmethod
     def from_dict(cls, data: dict) -> 'BloomFilter':
-        """Reconstrconstructe un Bloom Filter din dicționar."""
+        """Reconstruiește un Bloom Filter din dicționar."""
         bf = cls(size=data["size"], num_hashes=data["num_hashes"])
         bf.bit_array = data["bit_array"]
         bf.quotes = data["quotes"]

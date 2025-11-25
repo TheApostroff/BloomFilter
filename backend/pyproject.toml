@@ -3,12 +3,13 @@ name = "backend"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "core-db>=3.0.1",
     "fastapi>=0.121.1",
     "language-tool-python>=2.9.5",
     "mmh3>=5.2.0",
+    "passlib[bcrypt]>=1.7.4",
     "pydantic>=2.12.4",
     "python-multipart>=0.0.20",
     "sqlalchemy>=2.0.44",

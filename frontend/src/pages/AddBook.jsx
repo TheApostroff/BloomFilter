@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import apiFetch from '../utils/api'
 import './AddBook.css'
 
 function AddBook({ token, onSuccess }) {
@@ -11,8 +12,8 @@ function AddBook({ token, onSuccess }) {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0]
     if (selectedFile) {
-      if (!selectedFile.name.endsWith('.txt')) {
-        setError('Only .txt files are allowed')
+      if (!selectedFile.name.toLowerCase().endsWith('.txt') && !selectedFile.name.toLowerCase().endsWith('.pdf') && !selectedFile.name.toLowerCase().endsWith('.docx')) {
+        setError('Only .txt, .pdf or .docx files are allowed')
         setFile(null)
       } else {
         setFile(selectedFile)
@@ -27,6 +28,27 @@ function AddBook({ token, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!token) {
+      setError('Please login to upload a book')
+      return
+    }
+    // Verify token before uploading to avoid executing upload with an invalid session
+    try {
+      const verifyRes = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/api/auth/verify`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (!verifyRes.ok) {
+        setError('Session invalid. Please login again.')
+        // Clear stored token and notify parent
+        localStorage.removeItem('authToken')
+        localStorage.removeItem('username')
+        window.location.reload()
+        return
+      }
+    } catch (err) {
+      setError('Cannot verify session: ' + err.message)
+      return
+    }
     
     if (!file) {
       setError('Please select a file')
@@ -46,21 +68,14 @@ function AddBook({ token, onSuccess }) {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('title', title)
-      formData.append('token', token)
-
-      const response = await fetch('http://localhost:8000/api/books/upload', {
+      // Do not append token to form data; apiFetch will add Authorization header when token is present in localStorage
+      const response = await apiFetch('/api/books/upload', {
         method: 'POST',
         body: formData
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.detail || 'Upload failed')
-        return
-      }
-
-      setSuccess(data.message)
+      // If apiFetch didn't throw, we have the parsed JSON payload in `response`
+      setSuccess(response.message)
       setFile(null)
       setTitle('')
       
@@ -69,7 +84,10 @@ function AddBook({ token, onSuccess }) {
         onSuccess()
       }, 2000)
     } catch (err) {
-      setError('Server connection error: ' + err.message)
+      const msg = err && err.message && err.message.includes('Failed to fetch')
+        ? 'Server connection error: Cannot reach backend. Ensure backend is running and accessible.'
+        : 'Server connection error: ' + err.message
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -80,6 +98,9 @@ function AddBook({ token, onSuccess }) {
       <div className="add-book-container">
         <h2>Upload a Book</h2>
         <p className="subtitle">Upload a text file to index quotes using Bloom Filter</p>
+        {!token && (
+          <div className="warning">Please login to upload books. Go to Dashboard and click Login if you do not have an account.</div>
+        )}
 
         <form onSubmit={handleSubmit} className="upload-form">
           <div className="form-group">
@@ -95,18 +116,18 @@ function AddBook({ token, onSuccess }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="file">Text File (.txt)</label>
+            <label htmlFor="file">Text File (.txt, .pdf, .docx)</label>
             <div className="file-input-wrapper">
               <input
                 id="file"
                 type="file"
-                accept=".txt"
+                accept=".txt,.pdf,.docx"
                 onChange={handleFileChange}
-                disabled={loading}
+                disabled={loading || !token}
                 className="file-input"
               />
               <label htmlFor="file" className="file-label">
-                {file ? `Selected: ${file.name}` : 'Choose a text file'}
+                {file ? `Selected: ${file.name}` : 'Choose a file (.txt .pdf .docx)'}
               </label>
             </div>
           </div>
@@ -116,7 +137,7 @@ function AddBook({ token, onSuccess }) {
 
           <button
             type="submit"
-            disabled={loading || !file}
+            disabled={loading || !file || !token}
             className="upload-button"
           >
             {loading ? 'Uploading and Indexing...' : 'Upload Book'}

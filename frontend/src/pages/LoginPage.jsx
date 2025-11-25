@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import apiFetch from '../utils/api'
 import './LoginPage.css'
 
 
 
-function LoginPage({ onLogin }) {
+function LoginPage({ onLogin, onShowSignup }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -16,24 +17,10 @@ function LoginPage({ onLogin }) {
     setLoading(true)
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/login', {
+      const data = await apiFetch('/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: username,
-          password: password
-        })
+        body: JSON.stringify({ username, password })
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.detail || 'Login failed')
-        return
-      }
-
       onLogin(data.token, data.username)
     } catch (err) {
       setError('Server connection error: ' + err.message)
@@ -86,6 +73,9 @@ function LoginPage({ onLogin }) {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+        <div style={{marginTop:12}}>
+          <small>Don't have an account? <button className="link-btn" onClick={() => onShowSignup()}>Create one</button></small>
+        </div>
       </div>
     </div>
   )

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
+import apiFetch from '../utils/api'
 import './Dashboard.css'
 
 function Dashboard({ token }) {
   const [books, setBooks] = useState([])
   const [stats, setStats] = useState(null)
+  const [totalBooks, setTotalBooks] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -15,25 +17,21 @@ function Dashboard({ token }) {
   }, [token])
 
   const fetchData = async () => {
+    if (!token) return
     try {
-      const [booksRes, statsRes] = await Promise.all([
-        fetch(`http://localhost:8000/api/books?token=${token}`),
-        fetch(`http://localhost:8000/api/bloom-filter/stats?token=${token}`)
-      ])
-
-      if (booksRes.ok) {
-        const booksData = await booksRes.json()
-        setBooks(booksData.books)
-      }
-
-      if (statsRes.ok) {
-        const statsData = await statsRes.json()
-        setStats(statsData.stats)
-      }
+      const booksData = await apiFetch('/api/books')
+      const statsData = await apiFetch('/api/bloom-filter/stats')
+      setBooks(booksData.books || [])
+      setStats(statsData.stats)
+      setTotalBooks(statsData.total_books ?? totalBooks)
 
       setError('')
     } catch (err) {
-      setError('Error loading data: ' + err.message)
+      // Differentiate network errors (backend not running) from server errors
+      const msg = err && err.message && err.message.includes('Failed to fetch')
+        ? 'Error loading data: Cannot reach backend. Ensure backend is running (http://localhost:8000) and CORS is configured.'
+        : 'Error loading data: ' + err.message
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -55,7 +53,7 @@ function Dashboard({ token }) {
           <div className="stats-grid">
             <div className="stat-card">
               <div className="stat-label">Total Books</div>
-              <div className="stat-value">{stats.total_books}</div>
+              <div className="stat-value">{totalBooks}</div>
             </div>
             <div className="stat-card">
               <div className="stat-label">Total Quotes</div>
