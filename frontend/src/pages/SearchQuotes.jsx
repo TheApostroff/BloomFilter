@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import apiFetch from '../utils/api'
 import './SearchQuotes.css'
 
 function SearchQuotes({ token }) {
@@ -22,26 +23,16 @@ function SearchQuotes({ token }) {
     setSearched(true)
 
     try {
-      const response = await fetch(`http://localhost:8000/api/quotes/search?token=${token}`, {
+      const payload = await apiFetch('/api/quotes/search', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          quote: quote
-        })
+        body: JSON.stringify({ quote: quote })
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.detail || 'Search failed')
-        return
-      }
-
-      setResult(data)
+      setResult(payload)
     } catch (err) {
-      setError('Server connection error: ' + err.message)
+      const msg = err && err.message && err.message.includes('Failed to fetch')
+        ? 'Server connection error: Cannot reach backend. Ensure backend is running and accessible.'
+        : 'Server connection error: ' + err.message
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -58,34 +49,39 @@ function SearchQuotes({ token }) {
     const bookTitle = prompt('Enter the book title for this quote:')
     if (!bookTitle) return
 
+    // verify token before calling protected endpoint
+    if (!token) {
+      setError('Please login to add a quote')
+      return
+    }
+    try {
+      const verifyRes = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'}/api/auth/verify`, { headers: { 'Authorization': `Bearer ${token}` } })
+      if (!verifyRes.ok) {
+        setError('Session invalid. Please login again.')
+        localStorage.removeItem('authToken')
+        localStorage.removeItem('username')
+        window.location.reload()
+        return
+      }
+    } catch (err) {
+      setError('Cannot verify session: ' + err.message)
+      return
+    }
+
     setLoading(true)
     setError('')
 
     try {
-      const response = await fetch(`http://localhost:8000/api/quotes/add?token=${token}`, {
+      const payload = await apiFetch('/api/quotes/add', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          quote: quote,
-          book_title: bookTitle
-        })
+        body: JSON.stringify({ quote: quote, book_title: bookTitle })
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.detail || 'Add failed')
+      setResult({ found: true, message: payload.message, sources: [bookTitle] })
+    } catch (err) {
+      if (err && err.status === 409) {
+        setError('Quote already exists. No need to add it again.')
         return
       }
-
-      setResult({
-        found: true,
-        message: data.message,
-        sources: [bookTitle]
-      })
-    } catch (err) {
       setError('Server connection error: ' + err.message)
     } finally {
       setLoading(false)
@@ -126,7 +122,7 @@ function SearchQuotes({ token }) {
             <button
               type="button"
               onClick={handleAddQuote}
-              disabled={loading}
+              disabled={loading || !token}
               className="add-button"
             >
               {loading ? 'Adding...' : '➕ Add Quote'}
@@ -140,6 +136,12 @@ function SearchQuotes({ token }) {
             <div className="result-header">
               {result.found ? '✅ Quote Found' : '❌ Quote Not Found'}
             </div>
+            {result.found && result.sources && (
+              <div className="result-meta">
+                <strong>Occurrences:</strong> {result.sources.length}
+                <span style={{marginLeft:12}}><strong>Books:</strong> {Array.from(new Set(result.sources.map(s => s.title))).length}</span>
+              </div>
+            )}
             <div className="result-content">
               <p><strong>Message:</strong> {result.message}</p>
               
@@ -148,7 +150,13 @@ function SearchQuotes({ token }) {
                   <strong>Sources:</strong>
                   <ul>
                     {result.sources.map((source, idx) => (
-                      <li key={idx}>{source}</li>
+                      <li key={idx}>
+                        <div className="source-title">{source.title}</div>
+                        {source.page && <div>📄 Page: {source.page}</div>}
+                        {source.paragraph && <div>¶ Paragraph: {source.paragraph}</div>}
+                        {source.row && <div>— Row: {source.row}</div>}
+                        {source.snippet && <div className="snippet">"{source.snippet}"</div>}
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -158,7 +166,7 @@ function SearchQuotes({ token }) {
         )}
 
         {/* Bloom Filter Explanation */}
-        <div className="info-box">
+          <div className="info-box">
           <h3>How Bloom Filter Search Works</h3>
           <div className="explanation">
             <div className="explanation-item">

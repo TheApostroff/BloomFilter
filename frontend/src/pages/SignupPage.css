@@ -1,0 +1,24 @@
+.signup-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+.signup-card {
+  width: 420px;
+  padding: 22px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+.signup-form .form-group {
+  margin-bottom: 12px;
+}
+.password-wrapper { display:flex; gap:8px }
+.gen-btn { padding: 6px 10px; background:#0078d4; color:#fff; border:none; cursor:pointer; border-radius:4px }
+.signup-button { padding:8px 12px; background: #0078d4; color:#fff; border:none; border-radius:8px }
+.cancel-button { padding:8px 12px; background: #e0e0e0; color:#000; border:none; border-radius:8px }
+.error-message { color:#a00; margin-bottom:8px }
+.success-message { color:#0a9; margin-bottom:8px }
+.suggestions ul { list-style:none; margin:0; padding:0; display:flex; gap:8px; }
+.suggestions button { background:#f3f3f3; border:none; padding:4px 8px; border-radius:6px; cursor:pointer }

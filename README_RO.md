@@ -15,7 +15,7 @@ Un web site interactiv care demonstrează utilizarea unui **Bloom Filter** imple
 
 ### Backend
 - **FastAPI** - API server rapid și modern
-- **Python 3.13+** - Limbaj de programare
+- **Python 3.11+** - Limbaj de programare (3.11 or 3.12 recommended)
 - **mmh3** - Hash functions pentru Bloom Filter
 - **Pydantic** - Validarea datelor
 - **SQLAlchemy** - ORM (pentru extensii viitoare)
@@ -37,23 +37,22 @@ cd backend
 
 2. Creează un virtual environment (optional, dar recomandat):
 ```bash
-python -m venv venv
-# Windows
-venv\Scripts\activate
+python -m venv .venv
+# Windows (PowerShell)
+. .venv\Scripts\Activate.ps1
 # macOS/Linux
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 3. Instalează dependențele:
 ```bash
-pip install -r requirements.txt
-# sau
-pip install fastapi uvicorn mmh3 pydantic python-multipart
+python -m pip install -U pip
+python -m pip install -r requirements.txt
 ```
 
 4. Pornește serverul:
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Serverul va fi disponibil la: `http://localhost:8000`

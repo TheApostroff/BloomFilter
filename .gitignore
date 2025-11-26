@@ -1,3 +1,6 @@
+# Python venv
+.venv/
+backend/venv/
 # Prerequisites
 *.d
 
@@ -39,3 +42,8 @@
 
 # debug information files
 *.dwo
+
+
+# python cache
+
+*.pyc
