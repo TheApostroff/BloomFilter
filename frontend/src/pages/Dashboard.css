@@ -70,7 +70,8 @@
 }
 
 .books-section {
-  background: #b9a185e3;
+  background: #d0baa1eb;
+  ;
   padding: 2rem;
   border-radius: 12px;
   margin-bottom: 2rem;
@@ -134,6 +135,7 @@
   color: var(--c4)  ;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
+  opacity: 0.94;
 }
 
 .info-grid {
@@ -143,7 +145,7 @@
 }
 
 .info-card {
-  background: var(--c2);
+  background: #d0baa1eb;
   padding: 1.5rem;
   border-radius: 10px;
   text-align: center;
