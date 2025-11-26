@@ -55,7 +55,7 @@ function Dashboard({ token }) {
               <div className="stat-label">Total Books</div>
               <div className="stat-value">{totalBooks}</div>
             </div>
-            <div className="stat-card">
+            {/* <div className="stat-card">
               <div className="stat-label">Total Quotes</div>
               <div className="stat-value">{stats.total_quotes}</div>
             </div>
@@ -74,7 +74,7 @@ function Dashboard({ token }) {
             <div className="stat-card">
               <div className="stat-label">Hash Functions</div>
               <div className="stat-value">{stats.num_hashes}</div>
-            </div>
+            </div> */}
           </div>
         </div>
       )}

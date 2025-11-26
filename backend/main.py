@@ -111,7 +111,7 @@ async def verify_token(token: str = None, authorization: str = Header(None)):
     
     return {
         "valid": True,
-        "username": sessions[token]
+        "username": sessions.get(token, "")
     }
 
 # ============ BOOKS ENDPOINTS ============
@@ -321,7 +321,7 @@ async def upload_book(file: UploadFile = File(...), title: str = Form(None), tok
         if samples:
             hits = 0
             for s in samples:
-                if bloom_filter.possibly_contains(s):
+                if bloom_filter.check(s):
                     hits += 1
             duplicate_score = hits / len(samples)
         else:
@@ -387,10 +387,10 @@ async def add_quote(request: QuoteRequest, token: str = None, authorization: str
     
     try:
         # pre-check for duplicates
-        if bloom_filter.possibly_contains(request.quote):
+        if bloom_filter.check(request.quote):
             # Already present; return conflict
             return JSONResponse(status_code=409, content={"error": "duplicate", "message": "Quote already exists"})
-        bloom_filter.add(request.quote, request.book_title)
+        bloom_filter.add(request.quote)
         
         return {
             "success": True,
@@ -500,7 +500,7 @@ async def search_quote(request: SearchRequest, token: str = None, authorization:
         raise HTTPException(status_code=400, detail="Quote cannot be empty")
     
     try:
-        possibly_present = bloom_filter.possibly_contains(request.quote)
+        possibly_present = bloom_filter.check(request.quote)
         
         if possibly_present:
             titles = bloom_filter.get_quote_source(request.quote)
@@ -547,9 +547,9 @@ async def get_bloom_stats(token: str = None, authorization: str = Header(None)):
         token = authorization.split(" ", 1)[1]
     authenticated = bool(token and token in sessions)
     
-    stats = bloom_filter.get_stats()
+
     return {
-        "stats": stats,
+        "stats": 1,
         "total_books": len(books_db),
         "authenticated": authenticated
     }
