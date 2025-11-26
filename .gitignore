@@ -42,3 +42,8 @@ backend/venv/
 
 # debug information files
 *.dwo
+
+
+# python cache
+
+*.pyc

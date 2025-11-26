@@ -2,12 +2,10 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Header
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Dict, List, Optional
-import json
+from typing import Dict, Optional
 import os
 import secrets
-from bloom_filter import BloomFilter
+from bloomfilter import BloomFilter
 from io import BytesIO
 try:
     from docx import Document
@@ -42,8 +40,7 @@ def add_demo_users():
 add_demo_users()
 
 books_db: Dict[int, dict] = {}
-essays_db: Dict[int, dict] = {}
-bloom_filter = BloomFilter(size=200000, num_hashes=3)
+bloom_filter = BloomFilter(items_count=50000, fp_prob=0.01)
 sessions: Dict[str, str] = {}  # token -> username
 next_book_id = 1
 next_essay_id = 1
