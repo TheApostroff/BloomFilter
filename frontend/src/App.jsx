@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard'
 import AddBook from './pages/AddBook'
 import SearchQuotes from './pages/SearchQuotes'
 import NavBar from './components/NavBar'
+import Essays from './pages/Essays'
+import EssayEditor from './pages/EssayEditor'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('login')
@@ -84,6 +86,12 @@ function App() {
         
         {currentPage === 'search' && (
           <SearchQuotes token={token} />
+        )}
+        {currentPage === 'essays' && (
+          <Essays token={token} onNavigate={setCurrentPage} />
+        )}
+        {currentPage === 'essay-editor' && (
+          <EssayEditor token={token} onNavigate={setCurrentPage} />
         )}
       </main>
     </div>

@@ -42,9 +42,11 @@ def add_demo_users():
 add_demo_users()
 
 books_db: Dict[int, dict] = {}
-bloom_filter = BloomFilter(size=50000, num_hashes=3)
+essays_db: Dict[int, dict] = {}
+bloom_filter = BloomFilter(size=200000, num_hashes=3)
 sessions: Dict[str, str] = {}  # token -> username
 next_book_id = 1
+next_essay_id = 1
 
 # ============ PYDANTIC MODELS ============
 class LoginRequest(BaseModel):
@@ -62,6 +64,13 @@ class SearchRequest(BaseModel):
 class SignupRequest(BaseModel):
     nickname: str
     password: Optional[str] = None
+
+
+class EssayRequest(BaseModel):
+    title: str
+    content: str
+    font_size: Optional[int] = 14
+    font_style: Optional[str] = 'Arial'
 
 # ============ AUTHENTICATION ENDPOINTS ============
 @app.post("/api/auth/login")
@@ -293,8 +302,33 @@ async def upload_book(file: UploadFile = File(...), title: str = Form(None), tok
         # Utilizează titlul din formular sau extrage din nume fișier
         book_title = title if title else os.path.splitext(file.filename)[0]
         
-        # Adaugă citate în Bloom Filter (use shorter n-grams to favor quote search)
-        # Index small (2+) and medium (up to 20-word) n-grams to favor quote discovery
+        # Pre-check if uploaded content is likely duplicated by sampling n-grams and checking BloomFilter hits
+        def sample_ngrams(words, min_chunk=2, sample_size=100):
+            n = len(words)
+            if n <= 0:
+                return []
+            samples = []
+            # sample across different ngram sizes, evenly
+            sizes = [min_chunk, 3, 4]
+            for sz in sizes:
+                if n >= sz:
+                    step = max(1, (n - sz + 1) // sample_size)
+                    for i in range(0, n - sz + 1, step):
+                        samples.append(' '.join(words[i:i+sz]))
+            return samples
+
+        norm_text = bloom_filter._normalize_text(text)
+        words = norm_text.split()
+        samples = sample_ngrams(words, min_chunk=2, sample_size=200)
+        if samples:
+            hits = 0
+            for s in samples:
+                if bloom_filter.possibly_contains(s):
+                    hits += 1
+            duplicate_score = hits / len(samples)
+        else:
+            duplicate_score = 0.0
+
         bloom_filter.add_quotes_from_text(text, book_title, chunk_size=20, min_chunk=2, max_chunk=20)
         
         # Stochează informații despre carte (keep raw text and pages if available for snippet extraction)
@@ -315,10 +349,28 @@ async def upload_book(file: UploadFile = File(...), title: str = Form(None), tok
             "book_id": book_id,
             "title": book_title,
             "message": f"Cartea '{book_title}' a fost încărcată cu succes"
+            , "duplicate_score": duplicate_score,
+            "duplicate": duplicate_score > 0.6
         }
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/books/{book_id}/quotes")
+def list_book_quotes(book_id: int, token: str = None, authorization: str = Header(None)):
+    """Return the list of normalized quotes associated with a specific book."""
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+    authenticated = bool(token and token in sessions)
+
+    if book_id not in books_db:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    title = books_db[book_id]['title']
+    # scan bloom_filter.quotes for quotes belonging to title
+    res = [q for q, titles in bloom_filter.quotes.items() if title in titles]
+    return {"quotes": res, "book": title, "authenticated": authenticated}
 
 # ============ QUOTES ENDPOINTS ============
 @app.post("/api/quotes/add")
@@ -336,6 +388,10 @@ async def add_quote(request: QuoteRequest, token: str = None, authorization: str
         raise HTTPException(status_code=400, detail="Book title cannot be empty")
     
     try:
+        # pre-check for duplicates
+        if bloom_filter.possibly_contains(request.quote):
+            # Already present; return conflict
+            return JSONResponse(status_code=409, content={"error": "duplicate", "message": "Quote already exists"})
         bloom_filter.add(request.quote, request.book_title)
         
         return {
@@ -344,6 +400,95 @@ async def add_quote(request: QuoteRequest, token: str = None, authorization: str
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post('/api/essays')
+def create_essay(request: EssayRequest, token: str = None, authorization: str = Header(None)):
+    """Create a new essay in user's library. Requires authentication."""
+    global next_essay_id
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+    if not token or token not in sessions:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        essay_id = next_essay_id
+        essays_db[essay_id] = {
+            'id': essay_id,
+            'title': request.title,
+            'content': request.content,
+            'font_size': request.font_size,
+            'font_style': request.font_style,
+            'author': sessions[token],
+            'created_at': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat()
+        }
+        next_essay_id += 1
+        return { 'ok': True, 'essay_id': essay_id, 'essay': essays_db[essay_id] }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get('/api/essays')
+def list_essays(token: str = None, authorization: str = Header(None)):
+    """List authored essays for authenticated user."""
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+    if not token or token not in sessions:
+        # return empty library for unauthenticated users
+        return {'essays': [], 'authenticated': False}
+    author = sessions[token]
+    res = [e for e in essays_db.values() if e.get('author') == author]
+    return {'essays': res, 'authenticated': True}
+
+
+@app.get('/api/essays/{essay_id}')
+def get_essay(essay_id: int, token: str = None, authorization: str = Header(None)):
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+    if essay_id not in essays_db:
+        raise HTTPException(status_code=404, detail='Essay not found')
+    essay = essays_db[essay_id]
+    # public read: return essay if it belongs to author or if authenticated
+    if not token or token not in sessions:
+        return {'essay': essay, 'authenticated': False}
+    if essays_db[essay_id].get('author') != sessions[token]:
+        # unauthorized to edit, but read allowed
+        return {'essay': essay, 'authenticated': True, 'owner': False}
+    return {'essay': essay, 'authenticated': True, 'owner': True}
+
+
+@app.put('/api/essays/{essay_id}')
+def update_essay(essay_id: int, request: EssayRequest, token: str = None, authorization: str = Header(None)):
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+    if not token or token not in sessions:
+        raise HTTPException(status_code=401, detail='Unauthorized')
+    if essay_id not in essays_db:
+        raise HTTPException(status_code=404, detail='Essay not found')
+    if essays_db[essay_id].get('author') != sessions[token]:
+        raise HTTPException(status_code=403, detail='Forbidden')
+    essays_db[essay_id].update({
+        'title': request.title,
+        'content': request.content,
+        'font_size': request.font_size,
+        'font_style': request.font_style,
+        'updated_at': datetime.now().isoformat()
+    })
+    return {'ok': True, 'essay': essays_db[essay_id]}
+
+
+@app.delete('/api/essays/{essay_id}')
+def delete_essay(essay_id: int, token: str = None, authorization: str = Header(None)):
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+    if not token or token not in sessions:
+        raise HTTPException(status_code=401, detail='Unauthorized')
+    if essay_id not in essays_db:
+        raise HTTPException(status_code=404, detail='Essay not found')
+    if essays_db[essay_id].get('author') != sessions[token]:
+        raise HTTPException(status_code=403, detail='Forbidden')
+    del essays_db[essay_id]
+    return {'ok': True}
 
 @app.post("/api/quotes/search")
 async def search_quote(request: SearchRequest, token: str = None, authorization: str = Header(None)):

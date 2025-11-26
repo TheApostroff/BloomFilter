@@ -34,6 +34,14 @@ function NavBar({ username, currentPage, onNavigate, onLogout }) {
           </li>
           <li>
             <button
+              className={`nav-link ${currentPage === 'essays' ? 'active' : ''}`}
+              onClick={() => onNavigate('essays')}
+            >
+               Essays
+            </button>
+          </li>
+          <li>
+            <button
               className={`nav-link ${currentPage === 'search' ? 'active' : ''}`}
               onClick={() => onNavigate('search')}
             >

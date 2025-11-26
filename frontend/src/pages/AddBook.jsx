@@ -76,6 +76,9 @@ function AddBook({ token, onSuccess }) {
 
       // If apiFetch didn't throw, we have the parsed JSON payload in `response`
       setSuccess(response.message)
+      if (response.duplicate) {
+        setError(`Upload seems to be a duplicate (score ${Math.round(response.duplicate_score*100)}%). Consider skipping upload or force re-upload.`)
+      }
       setFile(null)
       setTitle('')
       

@@ -78,6 +78,10 @@ function SearchQuotes({ token }) {
       })
       setResult({ found: true, message: payload.message, sources: [bookTitle] })
     } catch (err) {
+      if (err && err.status === 409) {
+        setError('Quote already exists. No need to add it again.')
+        return
+      }
       setError('Server connection error: ' + err.message)
     } finally {
       setLoading(false)
@@ -162,7 +166,7 @@ function SearchQuotes({ token }) {
         )}
 
         {/* Bloom Filter Explanation */}
-        <div className="info-box">
+          <div className="info-box">
           <h3>How Bloom Filter Search Works</h3>
           <div className="explanation">
             <div className="explanation-item">

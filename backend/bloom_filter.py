@@ -10,7 +10,7 @@ class BloomFilter:
     Utilizează hash functions multiple (mmh3) pentru a minimiza false positives.
     """
     
-    def __init__(self, size: int = 10000, num_hashes: int = 3):
+    def __init__(self, size: int = 200000, num_hashes: int = 3):
         """
         Inițializează Bloom Filter.
         

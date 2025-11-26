@@ -18,6 +18,10 @@ def test_upload_and_search():
     data = {'title': 'TestUpload'}
     resp = client.post('/api/books/upload', headers=headers, data=data, files=files)
     assert resp.status_code == 200
+    # should include duplicate_score and duplicate flag
+    uploaded = resp.json()
+    assert 'duplicate_score' in uploaded
+    assert 'duplicate' in uploaded
 
     # Now search for a short quote that should be present
     search_payload = {'quote': 'wonderful world'}
@@ -61,6 +65,9 @@ def test_docx_upload_and_search():
     data = {'title': 'DocxUpload'}
     resp = client.post('/api/books/upload', headers=headers, data=data, files=files)
     assert resp.status_code == 200
+    uploaded = resp.json()
+    assert 'duplicate_score' in uploaded
+    assert 'duplicate' in uploaded
 
     resp = client.post('/api/quotes/search', headers=headers, json={'quote': 'wonderful world'})
     assert resp.status_code == 200

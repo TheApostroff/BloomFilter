@@ -1,0 +1,4 @@
+.essays-page { padding: 20px; }
+.essays-container { max-width: 900px; margin:0 auto }
+.essays-list { display:grid; grid-template-columns:1fr 1fr; gap:12px }
+.essay-card { padding:12px; border:1px solid #eee; border-radius:6px }
