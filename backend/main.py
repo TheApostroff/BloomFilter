@@ -40,6 +40,7 @@ def add_demo_users():
 add_demo_users()
 
 books_db: Dict[int, dict] = {}
+essays_db: Dict[int, dict] = {}
 bloom_filter = BloomFilter(items_count=50000, fp_prob=0.01)
 sessions: Dict[str, str] = {}  # token -> username
 next_book_id = 1
