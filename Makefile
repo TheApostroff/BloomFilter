@@ -33,7 +33,7 @@ dev: ## Start both backend and frontend in development mode
 
 dev-backend: ## Start backend server with uvicorn
 	@echo "$(BLUE)Starting FastAPI backend on http://localhost:8000$(NC)"
-	cd $(BACKEND_DIR) && uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
+	cd $(BACKEND_DIR) && uv run uvicorn main:app --host 0.0.0.0 --port 8000
 
 dev-frontend: ## Start frontend development server
 	@echo "$(BLUE)Starting Vite frontend on http://localhost:5173$(NC)"

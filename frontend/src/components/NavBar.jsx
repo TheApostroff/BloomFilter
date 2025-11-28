@@ -24,14 +24,14 @@ function NavBar({ username, currentPage, onNavigate, onLogout }) {
               Dashboard
             </button>
           </li>
-          <li>
+          {/* <li>
             <button
               className={`nav-link ${currentPage === 'add-book' ? 'active' : ''}`}
               onClick={() => onNavigate('add-book')}
             >
                Add Book
             </button>
-          </li>
+          </li> */}
           <li>
             <button
               className={`nav-link ${currentPage === 'essays' ? 'active' : ''}`}
@@ -40,14 +40,14 @@ function NavBar({ username, currentPage, onNavigate, onLogout }) {
                Essays
             </button>
           </li>
-          <li>
+          {/* <li>
             <button
               className={`nav-link ${currentPage === 'search' ? 'active' : ''}`}
               onClick={() => onNavigate('search')}
             >
                Search Quotes
             </button>
-          </li>
+          </li> */}
         </ul>
 
         <div className="navbar-right">

@@ -7,7 +7,7 @@ function SignupPage({ onLogin, onCancel }) {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [suggestions, setSuggestions] = useState([])
+  // const [suggestions, setSuggestions] = useState([])
   const [success, setSuccess] = useState('')
 
   const generatePassword = () => {
@@ -37,9 +37,13 @@ function SignupPage({ onLogin, onCancel }) {
       }
     } catch (err) {
       // If we received a 409 with suggestions, show them
-      if (err && err.status === 409 && err.payload && err.payload.suggestions) {
-        setSuggestions(err.payload.suggestions)
-        setError('Nickname taken - choose a suggestion or try another')
+      if (err && err.status === 409) {
+        // setSuggestions(err.payload.suggestions)
+        if (err.payload.error === "username_exists") {
+          setError('Nickname taken - choose another')
+        } else if (err.payload.error === "password_is_vulnerable"){
+          setError('Your password exists in a data branch, please take another one')
+        }
       } else {
         setError('Server connection error: ' + err.message)
       }
@@ -67,7 +71,7 @@ function SignupPage({ onLogin, onCancel }) {
           {error && <div className="error-message">{error}</div>}
           {success && <div className="success-message">{success}</div>}
 
-          {suggestions.length > 0 && (
+          {/* {suggestions.length > 0 && (
             <div className="suggestions">
               <div>Suggestions:</div>
               <ul>
@@ -76,7 +80,7 @@ function SignupPage({ onLogin, onCancel }) {
                 ))}
               </ul>
             </div>
-          )}
+          )} */}
 
           <div className="button-group">
             <button type="submit" className="signup-button" disabled={loading}>{loading ? 'Creating...' : 'Create Account'}</button>
