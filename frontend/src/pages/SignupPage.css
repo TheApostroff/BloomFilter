@@ -1,24 +1,56 @@
 .signup-container {
   display: flex;
-  align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  align-items: center;
+  min-height: 100vh;
+    --s: 212px; /* control the size*/
+    --c6: #809076;
+    --c2: #dbd4cb;
+    
+    --_g:radial-gradient(#0000 60%,var(--c6) 61% 63%,#0000 64% 77%,var(--c6) 78% 80%,#0000 81%);
+    --_c:,#0000 75%,var(--c2) 0;
+    background:
+      conic-gradient(at 12% 20% var(--_c)) calc(var(--s)* .44) calc(.9*var(--s)),
+      conic-gradient(at 12% 20% var(--_c)) calc(var(--s)*-.06) calc(.4*var(--s)),
+      conic-gradient(at 20% 12% var(--_c)) calc(.9*var(--s)) calc(var(--s)* .44),
+      conic-gradient(at 20% 12% var(--_c)) calc(.4*var(--s)) calc(var(--s)*-.06),
+      var(--_g),var(--_g) calc(var(--s)/2) calc(var(--s)/2) var(--c2);
+    background-size: var(--s) var(--s);
 }
 .signup-card {
-  width: 420px;
-  padding: 22px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  background: var(--c1);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 3rem;
+  max-width: 400px;
+  width: 100%;
+  animation: slideUp 0.5s ease-out;
 }
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.signup-header h1 {
+  font-size: 2rem;
+  color: var(--c4);
+  margin-bottom: 0.5rem;
+}
+
+.signup-header p {
+  color: #666;
+  font-size: 0.95rem;
+}
+
 .signup-form .form-group {
   margin-bottom: 12px;
 }
 .password-wrapper { display:flex; gap:8px }
-.gen-btn { padding: 6px 10px; background:#0078d4; color:#fff; border:none; cursor:pointer; border-radius:4px }
-.signup-button { padding:8px 12px; background: #0078d4; color:#fff; border:none; border-radius:8px }
-.cancel-button { padding:8px 12px; background: #e0e0e0; color:#000; border:none; border-radius:8px }
-.error-message { color:#a00; margin-bottom:8px }
+.gen-btn { padding: 6px 3px; background: none; color: var(--c6); border:none; cursor:pointer; border-radius:4px; font-size: 1rem; font-weight: bolder;}
+.signup-button { padding:8px 12px; background: linear-gradient(135deg, var(--c3) 0%, var(--c6) 100%); color:#fff; border:none; border-radius:8px; font-size: 1rem; font-weight: bolder; }
+.cancel-button { padding:8px 12px; background: #e0e0e0; color:#000; border:none; border-radius:8px; font-size: 1rem; }
+.error-message { color:#a00; margin-bottom:8px; font-size: 1rem; font-weight: bolder; }
 .success-message { color:#0a9; margin-bottom:8px }
 .suggestions ul { list-style:none; margin:0; padding:0; display:flex; gap:8px; }
 .suggestions button { background:#f3f3f3; border:none; padding:4px 8px; border-radius:6px; cursor:pointer }

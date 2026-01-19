@@ -140,3 +140,15 @@
 .demo-credentials p strong {
   color: var(--c3);
 }
+
+.link-btn{
+    color: var(--c6);
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    background: none;
+}
+
+.link-text{
+    font-size: 14px;
+}

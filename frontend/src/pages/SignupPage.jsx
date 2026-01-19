@@ -53,7 +53,9 @@ function SignupPage({ onLogin, onCancel }) {
   return (
     <div className="signup-container">
       <div className="signup-card">
-        <h2>Create Account</h2>
+        <div className="signup-header">
+          <h1>Sign Up</h1>
+        </div>
         <form onSubmit={handleSubmit} className="signup-form">
           <div className="form-group">
             <label htmlFor="nickname">Nickname</label>
@@ -70,17 +72,6 @@ function SignupPage({ onLogin, onCancel }) {
 
           {error && <div className="error-message">{error}</div>}
           {success && <div className="success-message">{success}</div>}
-
-          {/* {suggestions.length > 0 && (
-            <div className="suggestions">
-              <div>Suggestions:</div>
-              <ul>
-                {suggestions.map((s, idx) => (
-                  <li key={idx}><button type="button" onClick={() => setNickname(s)}>{s}</button></li>
-                ))}
-              </ul>
-            </div>
-          )} */}
 
           <div className="button-group">
             <button type="submit" className="signup-button" disabled={loading}>{loading ? 'Creating...' : 'Create Account'}</button>
