@@ -448,6 +448,8 @@ def api_spellcheck(req: SpellCheckRequest):
         if not norm:
             continue
         is_valid = spell_check_word(norm)
+        if len(norm) == 1:
+            is_valid = True
         results.append({
             "value": w,
             "normalize": norm,
