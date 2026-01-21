@@ -10,7 +10,5 @@
     gap:10px;
 }
 .toolbar { display:flex; gap:8px; align-items:center; }
-.editor-main { display:flex; gap:12px; }
-.editor-main textarea { flex:1; min-height:400px; padding:12px; }
 .quote-helper { width:260px; border-left:1px solid #ddd; padding-left:8px }
 .q-item { padding:4px; cursor:pointer; border-bottom: 1px solid #efefef }

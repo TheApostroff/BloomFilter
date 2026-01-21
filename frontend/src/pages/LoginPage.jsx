@@ -74,7 +74,7 @@ function LoginPage({ onLogin, onShowSignup }) {
           </button>
         </form>
         <div style={{marginTop:12}}>
-          <small class="link-text">Don't have an account? <button className="link-btn" onClick={() => onShowSignup()}>Create one</button></small>
+          <small className="link-text">Don't have an account? <button className="link-btn" onClick={() => onShowSignup()}>Create one</button></small>
         </div>
       </div>
     </div>

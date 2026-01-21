@@ -1,50 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
+import RichTextarea from '../components/RichTextarea'
+
 import apiFetch from '../utils/api'
 import './EssayEditor.css'
 
 function EssayEditor({ token, onNavigate }) {
-  const existing = localStorage.getItem('editingEssay')
-  const parsed = existing ? JSON.parse(existing) : null
-  const [title, setTitle] = useState(parsed?.title || '')
-  const [content, setContent] = useState(parsed?.content || '')
-  const [fontSize, setFontSize] = useState(parsed?.font_size || 14)
-  const [fontStyle, setFontStyle] = useState(parsed?.font_style || 'Arial')
-  const [error, setError] = useState('')
+
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [fontSize, setFontSize] = useState(14)
+  const [fontStyle, setFontStyle] = useState('Arial')
   const [loading, setLoading] = useState(false)
   const [checks, setChecks] = useState([])
   const debounceRef = useRef(null)
-  // const [books, setBooks] = useState([])
-  // const [selectedBook, setSelectedBook] = useState(null)
-  // const [bookQuotes, setBookQuotes] = useState([])
-
-  // useEffect(() => {
-  //   // fetch books for quotes selection
-  //   fetchBooks()
-  // }, [])
-
-  // const fetchBooks = async () => {
-  //   try {
-  //     const data = await apiFetch('/api/books')
-  //     setBooks(data.books || [])
-  //   } catch (err) {
-  //     // ignore
-  //   }
-  // }
-
-  // const loadQuotes = async (book) => {
-  //   if (!book) return
-  //   try {
-  //     const res = await apiFetch(`/api/books/${book.id}/quotes`)
-  //     setBookQuotes(res.quotes || [])
-  //     setSelectedBook(book)
-  //   } catch (err) {
-  //     setBookQuotes([])
-  //   }
-  // }
-
-  // const handleInsertQuote = (quote) => {
-  //   setContent(prev => prev + '\n"' + quote + '"')
-  // }
 
   // Debounced spellcheck when content changes
   useEffect(() => {
@@ -110,44 +78,7 @@ function EssayEditor({ token, onNavigate }) {
           <button onClick={() => onNavigate('essays')}>Back</button>
           <button onClick={handleSave} disabled={loading}>{loading ? 'Saving...' : 'Save'}</button>
         </div>
-        <div className="editor-main">
-          <textarea style={{ fontSize: fontSize + 'px', fontFamily: fontStyle }} value={content} onChange={(e) => setContent(e.target.value)}></textarea>
-          <div className="spellcheck-panel">
-            <div className="spellcheck-summary">
-              <strong>Words checked:</strong> {checks.length}
-              {checks.length > 0 && (
-                <>
-                  {' '}| <strong>Invalid:</strong> {checks.filter(c => !c.valid).length}
-                </>
-              )}
-            </div>
-            {checks.length > 0 && (
-              <div className="spellcheck-list">
-                {checks.slice(0, 50).map((c, idx) => (
-                  <div key={idx} className={`spellcheck-item ${c.valid ? 'ok' : 'bad'}`}>
-                    { !c.valid && <span className="val">{c.value} invalid</span>}
-                  </div>
-                ))}
-                {checks.length > 50 && (
-                  <div className="spellcheck-more">…and {checks.length - 50} more</div>
-                )}
-              </div>
-            )}
-          </div>
-          {/* <div className="quote-helper"> */}
-            {/* <h4>Insert Quote</h4> */}
-            {/* <div> */}
-              {/* <select onChange={(e) => { const id = parseInt(e.target.value); const book = books.find(b=>b.id===id); loadQuotes(book) }}>
-                <option value="">Select a book</option>
-                {books.map(b => <option key={b.id} value={b.id}>{b.title}</option>)}
-              </select> */}
-            {/* </div> */}
-            {/* <div className="quote-list"> */}
-              {/* {bookQuotes.map((q, idx) => <div key={idx} className="q-item" onClick={()=>handleInsertQuote(q)}>{q}</div>)} */}
-            {/* </div> */}
-          {/* </div> */}
-        </div>
-        {error && <div className="error-message">{error}</div>}
+          <RichTextarea value={content} onChange={setContent} invalidWords={checks.filter(c => !c.valid)}/>
       </div>
     </div>
   )

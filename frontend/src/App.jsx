@@ -74,16 +74,16 @@ function App() {
         onNavigate={setCurrentPage}
         onLogout={handleLogout}
       />
-      
+
       <main className="main-content">
         {currentPage === 'dashboard' && (
           <Dashboard token={token} />
         )}
-        
+
         {currentPage === 'add-book' && (
           <AddBook token={token} onSuccess={() => setCurrentPage('dashboard')} />
         )}
-        
+
         {currentPage === 'search' && (
           <SearchQuotes token={token} />
         )}
@@ -98,4 +98,6 @@ function App() {
   )
 }
 
+
 export default App
+
