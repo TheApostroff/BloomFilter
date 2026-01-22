@@ -78,7 +78,7 @@ function EssayEditor({ token, onNavigate }) {
           <button onClick={() => onNavigate('essays')}>Back</button>
           <button onClick={handleSave} disabled={loading}>{loading ? 'Saving...' : 'Save'}</button>
         </div>
-        <RichTextarea value={content} onChange={setContent} invalidWords={checks.filter(c => !c.valid)} />
+        <RichTextarea value={content} onChange={setContent} fontStyle={fontStyle} fontSize={fontSize} invalidWords={checks.filter(c => !c.valid)} />
       </div>
     </div>
   )

@@ -17,8 +17,6 @@
   height: 100%;
   margin: 0;
   padding: 8px;
-  font-family: monospace;
-  font-size: 14px;
   line-height: 1.5;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -43,8 +41,6 @@
   width: 100%;
   height: 100%;
   padding: 7px;
-  font-family: monospace;
-  font-size: 14px;
   line-height: 1.5;
   border: 1px solid #ddd;
   border-radius: 4px;

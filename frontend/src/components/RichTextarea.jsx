@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import './RichTextarea.css'
 
-function RichTextarea({ value, onChange, invalidWords = [] }) {
+function RichTextarea({ value, onChange, fontSize, fontStyle, invalidWords = [] }) {
   const textareaRef = useRef(null)
   const highlightRef = useRef(null)
 
@@ -34,13 +34,14 @@ function RichTextarea({ value, onChange, invalidWords = [] }) {
   return (
     <div className="rich-textarea-container">
       <div className="textarea-wrapper">
-        <pre className="highlight-layer" ref={highlightRef}><code></code></pre>
+        <pre className="highlight-layer" style={{ fontSize: fontSize + 'px', fontFamily: fontStyle }} ref={highlightRef}><code></code></pre>
         <textarea
           ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onScroll={handleScroll}
           className="textarea-input"
+          style={{ fontSize: fontSize + 'px', fontFamily: fontStyle }}
           placeholder="Start typing..."
           spellCheck="false"
         />
