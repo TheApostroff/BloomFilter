@@ -1,0 +1,697 @@
+[bloomfilter.py]
+
+import math
+import mmh3
+from bitarray import bitarray
+
+
+class BloomFilter(object):
+
+    '''
+    Class for Bloom filter, using murmur3 hash function
+    '''
+
+    def __init__(self, items_count, fp_prob):
+        '''
+        items_count : int
+            Number of items expected to be stored in bloom filter
+        fp_prob : float
+            False Positive probability in decimal
+        '''
+        # False possible probability in decimal
+        self.fp_prob = fp_prob
+
+        # Size of bit array to use
+        self.size = self.get_size(items_count, fp_prob)
+        
+        self.current_size = 0
+
+        # number of hash functions to use
+        self.hash_count = self.get_hash_count(self.size, items_count)
+
+        # Bit array of given size
+        self.bit_array = bitarray(self.size)
+
+        # initialize all bits as 0
+        self.bit_array.setall(0)
+
+        
+
+    def get_stats(self):
+        return {
+            "max_size": self.size,
+            "hash_count": self.hash_count,
+            "current_size": self.current_size,
+        }
+
+    def add(self, item):
+        '''
+        Add an item in the filter
+        '''
+        self.current_size += 1
+        digests = []
+        for i in range(self.hash_count):
+
+            # create digest for given item.
+            # i work as seed to mmh3.hash() function
+            # With different seed, digest created is different
+            digest = mmh3.hash(item, i) % self.size
+            digests.append(digest)
+
+            # set the bit True in bit_array
+            self.bit_array[digest] = True
+
+    def check(self, item):
+        '''
+        Check for existence of an item in filter
+        '''
+        for i in range(self.hash_count):
+            digest = mmh3.hash(item, i) % self.size
+            if not self.bit_array[digest]:
+
+                # if any of bit is False then,its not present
+                # in filter
+                # else there is probability that it exist
+                return False
+        return True
+
+    @classmethod
+    def get_size(cls, n, p):
+        '''
+        Return the size of bit array(m) to used using   
+        following formula
+        m = -(n * lg(p)) / (lg(2)^2)
+        n : int
+            number of items expected to be stored in filter
+        p : float
+            False Positive probability in decimal
+        '''
+        m = -(n * math.log(p))/(math.log(2)**2)
+        return int(m)
+
+    @classmethod
+    def get_hash_count(cls, m, n):
+        '''
+        Return the hash function(k) to be used using
+        following formula
+        k = (m/n) * lg(2)
+
+        m : int
+            size of bit array
+        n : int
+            number of items expected to be stored in filter
+        '''
+        k = (m/n) * math.log(2)
+        return int(k)
+
+    @staticmethod
+    def _normalize_text(text: str) -> str:
+        """
+        Normalize text for consistent comparison:
+        - Convert to lowercase
+        - Remove punctuation (keep only alphanumeric and spaces)
+        - Collapse multiple spaces into one
+        """
+        if not text:
+            return ''
+        # Remove punctuation, keep alphanumeric and spaces
+        normalized = ''.join(ch.lower() if ch.isalnum() or ch.isspace() else ' ' for ch in text)
+        # Collapse multiple spaces
+        normalized = ' '.join(normalized.split())
+        return normalized
+
+
+
+[passcheck]
+passwords = []
+
+with open(PASSWORDS, "r", encoding="utf-8") as f:
+    passwords = f.readlines()
+
+BF = BloomFilter(len(passwords) if passwords else 100, 0.01)
+
+for password in passwords:
+    BF.add(password.removesuffix("\n"))
+
+
+[spellcheck.py]
+from bloomfilter import BloomFilter
+import os
+
+# Get the absolute path to the Romanian words file
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROMANIAN_WORDS_FILE = os.path.join(CURRENT_DIR, "words", "Romanian", "Romanian.txt")
+
+romanian_words = []
+
+# Read Romanian words from file
+with open(ROMANIAN_WORDS_FILE, "r", encoding="utf-8") as f:
+    content = f.read()
+    romanian_words = [word.strip() for word in content.split(",") if word.strip()]
+
+# Initialize Bloom Filter with the number of words and false positive probability
+BF = BloomFilter(len(romanian_words) if romanian_words else 100, 0.01)
+
+# Add all Romanian words to the Bloom Filter
+for word in romanian_words:
+    BF.add(word.lower())
+
+
+def check_word(word):
+    """
+    Check if a word exists in the Romanian dictionary using Bloom Filter.
+    
+    Args:
+        word (str): The word to check
+        
+    Returns:
+        bool: True if the word might exist (or false positive), False if definitely not exists
+    """
+    return BF.check(word.lower())
+
+
+def check_text(text):
+    """
+    Check multiple words in a text and return which ones are not in the dictionary.
+    
+    Args:
+        text (str): Text containing words to check
+        
+    Returns:
+        list: List of words that are not in the dictionary
+    """
+    words = text.split()
+    misspelled = []
+    
+    for word in words:
+        # Remove punctuation
+        clean_word = ''.join(char for char in word if char.isalnum())
+        if clean_word and not check_word(clean_word) and len(clean_word) > 1:
+            misspelled.append(word)
+    
+    return misspelled
+
+
+def get_stats():
+    """
+    Get statistics about the Bloom Filter.
+    
+    Returns:
+        dict: Dictionary containing stats about the bloom filter
+    """
+    return {
+        "total_words": len(romanian_words),
+        "bloom_filter_size": BF.size,
+        "hash_count": BF.hash_count,
+        "false_positive_probability": BF.fp_prob
+    }
+
+
+
+[main.py]
+from fastapi import FastAPI, HTTPException, Header
+from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
+from typing import List
+import secrets
+from bloomfilter import BloomFilter
+from passwordcheck import BF as passcheck
+from spellcheck.spellcheck import check_word as spell_check_word
+
+try:
+    from docx import Document
+except Exception:
+    Document = None
+try:
+    from pypdf import PdfReader
+except Exception:
+    PdfReader = None
+from passlib.hash import pbkdf2_sha256
+
+import sqlite3
+
+connection = sqlite3.connect("db.db", check_same_thread=False)
+
+connection.execute("""
+CREATE TABLE IF NOT EXISTS Users(
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL,
+    session TEXT NOT NULL
+)
+""")
+
+connection.execute("""
+CREATE TABLE IF NOT EXISTS Sessions(
+    token TEXT PRIMARY KEY,
+    username TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+""")
+
+connection.execute("""
+CREATE TABLE IF NOT EXISTS Essays(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    font_size INTEGER DEFAULT 14,
+    font_style TEXT DEFAULT 'Arial',
+    author TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+""")
+
+connection.commit()
+
+users = connection.execute("SELECT username FROM Users").fetchall()
+username_checker = BloomFilter(len(users) * 2 + 10_000, 0.01)
+for user in users:
+    username = user[0]
+    username_checker.add(username)
+
+app = FastAPI()
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ============ PYDANTIC MODELS ============
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class QuoteRequest(BaseModel):
+    quote: str
+    book_title: str
+
+
+class SearchRequest(BaseModel):
+    quote: str
+
+
+class SignupRequest(BaseModel):
+    nickname: str
+    password: Optional[str] = None
+
+
+class EssayRequest(BaseModel):
+    title: str
+    content: str
+    font_size: Optional[int] = 14
+    font_style: Optional[str] = "Arial"
+
+
+class SpellCheckRequest(BaseModel):
+    # Accept either raw text or an explicit list of words
+    text: Optional[str] = None
+    words: Optional[List[str]] = None
+
+class SpellCheckItem(BaseModel):
+    value: str
+    normalize: str
+    valid: bool
+
+
+# ============ AUTHENTICATION ENDPOINTS ============
+@app.post("/api/auth/login")
+async def login(request: LoginRequest):
+    """Autentificare utilizator."""
+    user = connection.execute(
+        "SELECT username, password FROM Users WHERE username=?", (request.username,)
+    ).fetchone()
+
+    username, password = user
+    if not user or request.username != username:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not pbkdf2_sha256.verify(request.password, password):
+        raise HTTPException(status_code=402, detail="Invalid credentials")
+
+    token = secrets.token_urlsafe(32)
+    connection.execute(
+        "INSERT INTO Sessions(token, username) VALUES(?,?)", (token, request.username)
+    )
+    connection.commit()
+
+    return {"success": True, "token": token, "username": request.username}
+
+
+@app.post("/api/auth/logout")
+async def logout(token: str = None, authorization: str = Header(None)):
+    """Delogare utilizator."""
+    # Accept token either as query param or in Authorization header
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+    if token:
+        connection.execute("DELETE FROM Sessions WHERE token=?", (token,))
+        connection.commit()
+
+    return {"success": True}
+
+
+@app.get("/api/auth/verify")
+async def verify_token(token: str = None, authorization: str = Header(None)):
+    """Verifică dacă token-ul este valid."""
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+
+    if token:
+        result = connection.execute(
+            "SELECT username FROM Sessions WHERE token=?", (token,)
+        ).fetchone()
+        if result:
+            return {"valid": True, "username": result[0]}
+    return {"valid": False, "username": ""}
+
+
+@app.post("/api/essays")
+def create_essay(
+    request: EssayRequest, token: str = None, authorization: str = Header(None)
+):
+    """Create a new essay in user's library. Requires authentication."""
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+
+    username = None
+    if token:
+        result = connection.execute(
+            "SELECT username FROM Sessions WHERE token=?", (token,)
+        ).fetchone()
+        if result:
+            username = result[0]
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    try:
+        connection.execute(
+            """
+            INSERT INTO Essays(title, content, font_size, font_style, author)
+            VALUES(?, ?, ?, ?, ?)
+            """,
+            (
+                request.title,
+                request.content,
+                request.font_size,
+                request.font_style,
+                username,
+            ),
+        )
+        connection.commit()
+        essay_id = connection.lastrowid
+
+        essay = connection.execute(
+            "SELECT id, title, content, font_size, font_style, author, created_at, updated_at FROM Essays WHERE id=?",
+            (essay_id,),
+        ).fetchone()
+
+        return {
+            "ok": True,
+            "essay_id": essay_id,
+            "essay": {
+                "id": essay[0],
+                "title": essay[1],
+                "content": essay[2],
+                "font_size": essay[3],
+                "font_style": essay[4],
+                "author": essay[5],
+                "created_at": essay[6],
+                "updated_at": essay[7],
+            },
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/essays")
+def list_essays(token: str = None, authorization: str = Header(None)):
+    """List authored essays for authenticated user."""
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+
+    author = None
+    if token:
+        result = connection.execute(
+            "SELECT username FROM Sessions WHERE token=?", (token,)
+        ).fetchone()
+        if result:
+            author = result[0]
+
+    if not author:
+        # return empty library for unauthenticated users
+        return {"essays": [], "authenticated": False}
+
+    essays = connection.execute(
+        "SELECT id, title, content, font_size, font_style, author, created_at, updated_at FROM Essays WHERE author=?",
+        (author,),
+    ).fetchall()
+
+    res = [
+        {
+            "id": e[0],
+            "title": e[1],
+            "content": e[2],
+            "font_size": e[3],
+            "font_style": e[4],
+            "author": e[5],
+            "created_at": e[6],
+            "updated_at": e[7],
+        }
+        for e in essays
+    ]
+
+    return {"essays": res, "authenticated": True}
+
+
+@app.get("/api/essays/{essay_id}")
+def get_essay(essay_id: int, token: str = None, authorization: str = Header(None)):
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+
+    essay_data = connection.execute(
+        "SELECT id, title, content, font_size, font_style, author, created_at, updated_at FROM Essays WHERE id=?",
+        (essay_id,),
+    ).fetchone()
+
+    if not essay_data:
+        raise HTTPException(status_code=404, detail="Essay not found")
+
+    essay = {
+        "id": essay_data[0],
+        "title": essay_data[1],
+        "content": essay_data[2],
+        "font_size": essay_data[3],
+        "font_style": essay_data[4],
+        "author": essay_data[5],
+        "created_at": essay_data[6],
+        "updated_at": essay_data[7],
+    }
+
+    username = None
+    if token:
+        result = connection.execute(
+            "SELECT username FROM Sessions WHERE token=?", (token,)
+        ).fetchone()
+        if result:
+            username = result[0]
+
+    # public read: return essay if it belongs to author or if authenticated
+    if not username:
+        return {"essay": essay, "authenticated": False}
+    if essay["author"] != username:
+        # unauthorized to edit, but read allowed
+        return {"essay": essay, "authenticated": True, "owner": False}
+    return {"essay": essay, "authenticated": True, "owner": True}
+
+
+@app.put("/api/essays/{essay_id}")
+def update_essay(
+    essay_id: int,
+    request: EssayRequest,
+    token: str = None,
+    authorization: str = Header(None),
+):
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+
+    username = None
+    if token:
+        result = connection.execute(
+            "SELECT username FROM Sessions WHERE token=?", (token,)
+        ).fetchone()
+        if result:
+            username = result[0]
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    essay_data = connection.execute(
+        "SELECT author FROM Essays WHERE id=?", (essay_id,)
+    ).fetchone()
+
+    if not essay_data:
+        raise HTTPException(status_code=404, detail="Essay not found")
+    if essay_data[0] != username:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    connection.execute(
+        """
+        UPDATE Essays
+        SET title=?, content=?, font_size=?, font_style=?, updated_at=CURRENT_TIMESTAMP
+        WHERE id=?
+        """,
+        (
+            request.title,
+            request.content,
+            request.font_size,
+            request.font_style,
+            essay_id,
+        ),
+    )
+    connection.commit()
+
+    updated_essay = connection.execute(
+        "SELECT id, title, content, font_size, font_style, author, created_at, updated_at FROM Essays WHERE id=?",
+        (essay_id,),
+    ).fetchone()
+
+    return {
+        "ok": True,
+        "essay": {
+            "id": updated_essay[0],
+            "title": updated_essay[1],
+            "content": updated_essay[2],
+            "font_size": updated_essay[3],
+            "font_style": updated_essay[4],
+            "author": updated_essay[5],
+            "created_at": updated_essay[6],
+            "updated_at": updated_essay[7],
+        },
+    }
+
+
+@app.delete("/api/essays/{essay_id}")
+def delete_essay(essay_id: int, token: str = None, authorization: str = Header(None)):
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+
+    username = None
+    if token:
+        result = connection.execute(
+            "SELECT username FROM Sessions WHERE token=?", (token,)
+        ).fetchone()
+        if result:
+            username = result[0]
+
+    if not username:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    essay_data = connection.execute(
+        "SELECT author FROM Essays WHERE id=?", (essay_id,)
+    ).fetchone()
+
+    if not essay_data:
+        raise HTTPException(status_code=404, detail="Essay not found")
+    if essay_data[0] != username:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    connection.execute("DELETE FROM Essays WHERE id=?", (essay_id,))
+    connection.commit()
+
+    return {"ok": True}
+
+
+# ============ BLOOM FILTER STATS ============
+@app.get("/api/bloom-filter/stats")
+async def get_bloom_stats(token: str = None, authorization: str = Header(None)):
+    """Returnează statistici despre Bloom Filter."""
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1]
+
+    authenticated = False
+    if token:
+        result = connection.execute(
+            "SELECT username FROM Sessions WHERE token=?", (token,)
+        ).fetchone()
+        authenticated = result is not None
+
+    return {"stats": username_checker.get_stats(), "authenticated": authenticated}
+
+
+@app.get("/api/health")
+def health_check():
+    """Verifică starea API-ului."""
+    # Simple health endpoint; extend as needed with deeper checks
+    return {"status": "ok"}
+
+
+# ============ SPELLCHECK ============
+@app.post("/api/spellcheck")
+def api_spellcheck(req: SpellCheckRequest):
+    """Check words validity. Returns array of {value, normalize, valid}."""
+
+    def normalize_word(w: str) -> str:
+        # Keep alphanumeric unicode chars only, lowercase
+        return "".join(ch for ch in w if ch.isalnum()).lower()
+
+    # Build list of input words from either text or provided words
+    words: List[str] = []
+    if req.words is not None:
+        words = [w for w in req.words if isinstance(w, str)]
+    elif isinstance(req.text, str):
+        # split on whitespace; server will normalize further
+        words = req.text.split()
+    else:
+        return {"results": []}
+
+    results: List[dict] = []
+    for w in words:
+        norm = normalize_word(w)
+        if not norm:
+            continue
+        is_valid = spell_check_word(norm)
+        if len(norm) == 1:
+            is_valid = True
+        results.append({
+            "value": w,
+            "normalize": norm,
+            "valid": bool(is_valid),
+        })
+
+    return {"results": results}
+
+
+@app.post("/api/signup")
+def signup(request: SignupRequest):
+    nick = request.nickname.strip()
+    if not nick:
+        return JSONResponse(status_code=400, content={"error": "nick required"})
+
+    if username_checker.check(request.nickname):
+        return JSONResponse(status_code=409, content={"error": "username_exists"})
+
+    password = request.password
+    if passcheck.check(password):
+        return JSONResponse(status_code=409, content={"error": "password_is_vulnerable"})
+
+    token = secrets.token_urlsafe(32)
+
+    connection.execute(
+        "INSERT INTO Users(username, password) VALUES(?,?)",
+        (request.nickname, pbkdf2_sha256.hash(password)),
+    )
+    connection.execute("INSERT INTO Sessions(token, username) VALUES(?,?)", (token, nick))
+    connection.commit()
+
+    username_checker.add(request.nickname)
+
+    return {"ok": True, "nickname": nick, "password": password, "token": token}

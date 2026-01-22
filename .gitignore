@@ -46,4 +46,4 @@ backend/venv/
 
 # python cache
 
-*.pyc
+**/*.pyc
