@@ -100,7 +100,7 @@
   background: linear-gradient(135deg, #f5f7fa 0%, #eff1f5 100%);
   padding: 1.5rem;
   border-radius: 10px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--c6);
   transition: all 0.3s ease;
 }
 
