@@ -3,11 +3,9 @@ import apiFetch from '../utils/api'
 import './Dashboard.css'
 
 function Dashboard({ token }) {
-  // const [books, setBooks] = useState([])
   const [stats, setStats] = useState(null)
   const [essays, setEssays] = useState([])
   const [totalEssays, setTotalEssays] = useState(0)
-  // const [totalBooks, setTotalBooks] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -57,14 +55,6 @@ function Dashboard({ token }) {
         <div className="stats-container">
           <h3>Bloom Filter Statistics</h3>
           <div className="stats-grid">
-            {/* <div className="stat-card">
-              <div className="stat-label">Total Books</div>
-              <div className="stat-value">{totalBooks}</div>
-            </div> */}
-            {/* <div className="stat-card">
-              <div className="stat-label">Total Quotes</div>
-              <div className="stat-value">{stats.total_quotes | 0}</div>
-            </div> */}
             <div className="stat-card">
               <div className="stat-label">Total Essays</div>
               <div className="stat-value">{totalEssays}</div>
@@ -113,8 +103,8 @@ function Dashboard({ token }) {
                   <p className="book-meta">
                     Font: {essay.font_style} • Size: {essay.font_size}px
                   </p>
-                  <p className="essay-preview">
-                    {essay.content.substring(0, 150)}
+                  <p className="essay-preview" style={{fontSize: essay.font_size + 'px', fontFamily: essay.font_style }}>
+                    {essay.content.substring(0, 10)}
                     {essay.content.length > 150 ? '...' : ''}
                   </p>
                 </div>
@@ -123,53 +113,6 @@ function Dashboard({ token }) {
           </div>
         )}
       </div>
-
-      {/* Books List
-      <div className="books-section">
-        <h2>Uploaded Books</h3>
-        {loading ? (
-          <p>Loading books...</p>
-        ) : books.length === -1 ? (
-          <div className="empty-state">
-            <p>No books uploaded yet. Start by uploading a book!</p>
-          </div>
-        ) : (
-          <div className="books-list">
-            {books.map((book) => (
-              <div key={book.id} className="book-card">
-                <div className="book-info">
-                  <h3>{book.title}</h4>
-                  <p className="book-meta">
-                    Uploaded: {new Date(book.upload_date).toLocaleDateString()}
-                  </p>
-                  <p className="book-meta">
-                    Quotes indexed: {book.quotes_count}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div> */}
-
-      {/* Quick Info */}
-      {/* <div className="info-section">
-        <h3>How to use?</h3>
-        <div className="info-grid">
-          <div className="info-card">
-            <h4>📚 Add Books</h4>
-            <p>Upload text files (.txt) to index quotes using Bloom Filter</p>
-          </div>
-          <div className="info-card">
-            <h4>🔍 Search Quotes</h4>
-            <p>Use the search feature to find quotes and their sources</p>
-          </div>
-          <div className="info-card">
-            <h4>⚡ Bloom Filter</h4>
-            <p>Efficient data structure for quick membership testing</p>
-          </div>
-        </div>
-      </div> */}
     </div>
   )
 }

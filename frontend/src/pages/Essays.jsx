@@ -29,7 +29,7 @@ function Essays({ token, onNavigate }) {
       <div className="essays-container">
         <h2>Your Essays</h2>
         <div className="essays-actions">
-          <button onClick={() => onNavigate('essay-editor')}>Create New Essay</button>
+          <button onClick={() => {onNavigate('essay-editor'); localStorage.removeItem('editingEssay');}}>Create New Essay</button>
         </div>
         {loading && <p>Loading...</p>}
         {error && <div className="error-message">{error}</div>}

@@ -93,6 +93,7 @@ class SignupRequest(BaseModel):
 
 
 class EssayRequest(BaseModel):
+    id: int
     title: str
     content: str
     font_size: Optional[int] = 14
@@ -184,29 +185,53 @@ def create_essay(
 
     try:
         print(request, username)
-        cursor.execute(
-            """
-            INSERT INTO Essays(title, content, font_size, font_style, author)
-            VALUES(?, ?, ?, ?, ?)
-            """,
-            (
-                request.title,
-                request.content,
-                request.font_size,
-                request.font_style,
-                username,
-            ),
-        )
-        essay_id = cursor.lastrowid
 
-        essay = connection.execute(
+        if request.id == 0:
+            print("create")
+            cursor.execute(
+                """
+                INSERT INTO Essays(title, content, font_size, font_style, author)
+                VALUES(?, ?, ?, ?, ?)
+                """,
+                (
+                    request.title,
+                    request.content,
+                    request.font_size,
+                    request.font_style,
+                    username,
+                ),
+            )
+            connection.commit()
+            request.id = cursor.lastrowid
+        else:
+            cursor.execute(
+                """
+                UPDATE Essays SET title=?, content=?, font_size=?, font_style=?, author=? WHERE id=?
+                """,
+                (
+                    request.title,
+                    request.content,
+                    request.font_size,
+                    request.font_style,
+                    username,
+
+                    request.id
+                ),
+            )
+            connection.commit()
+            
+
+
+        essay = cursor.execute(
             "SELECT id, title, content, font_size, font_style, author, created_at, updated_at FROM Essays WHERE id=?",
-            (essay_id,),
+            (request.id,),
         ).fetchone()
+
+        cursor.close()
 
         return {
             "ok": True,
-            "essay_id": essay_id,
+            "essay_id": request.id,
             "essay": {
                 "id": essay[0],
                 "title": essay[1],

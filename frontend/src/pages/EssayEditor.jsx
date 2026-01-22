@@ -12,6 +12,7 @@ function EssayEditor({ token, onNavigate }) {
   const [content, setContent] = useState(parsed?.content || '')
   const [fontSize, setFontSize] = useState(parsed?.font_size || 14)
   const [fontStyle, setFontStyle] = useState(parsed?.font_style || 'Arial')
+  const [id, setID] = useState(parsed?.id || 0)
 
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -39,7 +40,7 @@ function EssayEditor({ token, onNavigate }) {
         })
         setChecks(Array.isArray(res?.results) ? res.results : [])
       } catch (e) {
-        // Non-fatal; don't block editor
+          return
       }
     }, 400)
 
@@ -53,7 +54,8 @@ function EssayEditor({ token, onNavigate }) {
     setLoading(true)
     setError('')
     try {
-      resp = await apiFetch(`/api/essays/`, { method: 'POST', body: JSON.stringify({ title, content, font_size: fontSize, font_style: fontStyle }) })
+        let resp
+      resp = await apiFetch(`/api/essays/`, { method: 'POST', body: JSON.stringify({ title, content, font_size: fontSize, font_style: fontStyle, id }) })
 
       console.log(resp.body)
       onNavigate('essays')
