@@ -12,9 +12,8 @@ function RichTextarea({ value, onChange, fontSize, fontStyle, invalidWords = [] 
       // Highlight invalid words
       if (invalidWords.length > 0) {
         invalidWords.forEach(word => {
-          const regex = new RegExp(`\\b(${word.value})\\b`, 'gi')
           highlightedHTML = highlightedHTML.replace(
-            regex,
+            word.value,
             '<mark class="invalid-word">'+word.value +'</mark>'
           )
         })
