@@ -166,13 +166,14 @@ async def verify_token(token: str = None, authorization: str = Header(None)):
 def create_essay(
     request: EssayRequest, token: str = None, authorization: str = Header(None)
 ):
+    cursor = connection.cursor()
     """Create a new essay in user's library. Requires authentication."""
     if authorization and authorization.lower().startswith("bearer "):
         token = authorization.split(" ", 1)[1]
 
     username = None
     if token:
-        result = connection.execute(
+        result = cursor.execute(
             "SELECT username FROM Sessions WHERE token=?", (token,)
         ).fetchone()
         if result:
@@ -182,7 +183,8 @@ def create_essay(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     try:
-        connection.execute(
+        print(request, username)
+        cursor.execute(
             """
             INSERT INTO Essays(title, content, font_size, font_style, author)
             VALUES(?, ?, ?, ?, ?)
@@ -195,8 +197,7 @@ def create_essay(
                 username,
             ),
         )
-        connection.commit()
-        essay_id = connection.lastrowid
+        essay_id = cursor.lastrowid
 
         essay = connection.execute(
             "SELECT id, title, content, font_size, font_style, author, created_at, updated_at FROM Essays WHERE id=?",
@@ -218,6 +219,7 @@ def create_essay(
             },
         }
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -227,9 +229,11 @@ def list_essays(token: str = None, authorization: str = Header(None)):
     if authorization and authorization.lower().startswith("bearer "):
         token = authorization.split(" ", 1)[1]
 
+    cursor = connection.cursor()
     author = None
     if token:
-        result = connection.execute(
+        
+        result = cursor.execute(
             "SELECT username FROM Sessions WHERE token=?", (token,)
         ).fetchone()
         if result:
@@ -239,7 +243,7 @@ def list_essays(token: str = None, authorization: str = Header(None)):
         # return empty library for unauthenticated users
         return {"essays": [], "authenticated": False}
 
-    essays = connection.execute(
+    essays = cursor.execute(
         "SELECT id, title, content, font_size, font_style, author, created_at, updated_at FROM Essays WHERE author=?",
         (author,),
     ).fetchall()

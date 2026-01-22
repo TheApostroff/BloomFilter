@@ -5,11 +5,15 @@ import apiFetch from '../utils/api'
 import './EssayEditor.css'
 
 function EssayEditor({ token, onNavigate }) {
+  const existing = localStorage.getItem('editingEssay')
+  const parsed = existing ? JSON.parse(existing) : null
 
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [fontSize, setFontSize] = useState(14)
-  const [fontStyle, setFontStyle] = useState('Arial')
+  const [title, setTitle] = useState(parsed?.title || '')
+  const [content, setContent] = useState(parsed?.content || '')
+  const [fontSize, setFontSize] = useState(parsed?.font_size || 14)
+  const [fontStyle, setFontStyle] = useState(parsed?.font_style || 'Arial')
+
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [checks, setChecks] = useState([])
   const debounceRef = useRef(null)
@@ -49,18 +53,14 @@ function EssayEditor({ token, onNavigate }) {
     setLoading(true)
     setError('')
     try {
-      let resp
-      if (parsed) {
-        resp = await apiFetch(`/api/essays/${parsed.id}`, { method: 'PUT', body: JSON.stringify({ title, content, font_size: fontSize, font_style: fontStyle }) })
-      } else {
-        resp = await apiFetch('/api/essays', { method: 'POST', body: JSON.stringify({ title, content, font_size: fontSize, font_style: fontStyle }) })
-      }
+      resp = await apiFetch(`/api/essays/`, { method: 'POST', body: JSON.stringify({ title, content, font_size: fontSize, font_style: fontStyle }) })
+
+      console.log(resp.body)
       onNavigate('essays')
     } catch (err) {
       setError(err.message || 'Save failed')
     } finally {
       setLoading(false)
-      localStorage.removeItem('editingEssay')
     }
   }
 
@@ -78,7 +78,7 @@ function EssayEditor({ token, onNavigate }) {
           <button onClick={() => onNavigate('essays')}>Back</button>
           <button onClick={handleSave} disabled={loading}>{loading ? 'Saving...' : 'Save'}</button>
         </div>
-          <RichTextarea value={content} onChange={setContent} invalidWords={checks.filter(c => !c.valid)}/>
+        <RichTextarea value={content} onChange={setContent} invalidWords={checks.filter(c => !c.valid)} />
       </div>
     </div>
   )
