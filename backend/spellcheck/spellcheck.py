@@ -17,7 +17,8 @@ BF = BloomFilter(len(romanian_words) if romanian_words else 100, 0.01)
 
 # Add all Romanian words to the Bloom Filter
 for word in romanian_words:
-    BF.add(word.lower())
+    clean_word = ''.join(char for char in word.lower() if char.isalnum())
+    BF.add(clean_word)
 
 
 def check_word(word):
